@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Las Mulatas · Panel de Ventas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1d2b2a; --paper:#f4eee1; --card:#ffffff;
+    --mango:#ef9d34; --mango-soft:#fbe6c6;
+    --achiote:#d9542e; --achiote-soft:#f6dccf;
+    --verde:#2c9d86; --verde-soft:#cfe9e2;
+    --muted:#77857f; --grid:#e7ddcc; --line:#eadfce;
+    --shadow:0 1px 2px rgba(29,43,42,.06),0 8px 24px rgba(29,43,42,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+
+  header.brand{background:var(--ink);color:#f4eee1;border-bottom:3px solid var(--mango)}
+  .brand .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px}
+  .logo{display:flex;align-items:baseline;gap:10px;min-width:0}
+  .logo b{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:26px;letter-spacing:.2px;white-space:nowrap}
+  .logo span{font-size:12.5px;color:#c9b79a;font-weight:500;letter-spacing:.3px}
+  .head-right{display:flex;align-items:center;gap:14px}
+  .updated{font-size:12px;color:#b9c6c0;text-align:right;line-height:1.3}
+  .updated b{color:#f4eee1;font-weight:600}
+  .head-btns{display:flex;gap:8px}
+  .hbtn{appearance:none;border:1px solid #3a4a49;background:transparent;color:#e9ddc9;font-family:inherit;font-size:12px;font-weight:600;padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .hbtn:hover{background:#2b3d3c}
+
+  nav.tabs{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+  nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  nav.tabs .wrap::-webkit-scrollbar{display:none}
+  .tab{appearance:none;border:0;background:transparent;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);padding:14px 14px 12px;border-bottom:3px solid transparent;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--ink);border-bottom-color:var(--mango)}
+  .tab.add{color:var(--achiote)}
+  .tab.add.active{color:var(--achiote);border-bottom-color:var(--achiote)}
+
+  main{padding:24px 0 64px}
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  h2.title{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:22px;margin:2px 0 2px}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .val{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:26px;margin-top:6px;line-height:1.1}
+  .kpi .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .kpi.good .val{color:var(--verde)} .kpi.warn .val{color:var(--achiote)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card h3{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:17px;margin:0 0 2px}
+  .card .note{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+
+  .callout{display:flex;gap:12px;align-items:flex-start;background:var(--achiote-soft);border:1px solid #eec3b1;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+  .callout.tip{background:var(--verde-soft);border-color:#b3ddd3}
+  .callout .ico{font-size:20px;line-height:1}
+  .callout p{margin:0;font-size:13.5px}
+  .callout b{font-weight:700}
+
+  .chart{width:100%;overflow:visible}
+  .seg{display:inline-flex;background:#efe7d7;border-radius:10px;padding:3px;gap:2px;margin:0 10px 12px 0;vertical-align:middle}
+  .seg button{appearance:none;border:0;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;vertical-align:middle;margin-bottom:12px}
+  .chk input{width:16px;height:16px;accent-color:var(--verde)}
+  .leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-left:14px}
+  .leg i{width:14px;height:3px;border-radius:2px;display:inline-block}
+
+  .tbl-wrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #f0e8d9;white-space:nowrap}
+  th{position:sticky;top:0;background:#faf5ea;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.3px;z-index:1}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11.5px;font-weight:600}
+  .pill.low{background:var(--achiote-soft);color:#a53c17}
+  .pill.high{background:var(--verde-soft);color:#1c6b5b}
+  .pill.new{background:var(--mango-soft);color:#96590d}
+  .up{color:var(--verde);font-weight:700}.down{color:var(--achiote);font-weight:700}
+
+  .grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-bottom:18px}
+  .prog{height:14px;background:#efe7d7;border-radius:10px;overflow:hidden;margin:10px 0 6px}
+  .prog>span{display:block;height:100%;background:linear-gradient(90deg,var(--mango),var(--verde));border-radius:10px;transition:width .5s}
+  .meta-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .meta-row input{width:120px;font-family:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--grid);border-radius:9px;background:#fffdf8}
+  .meta-row input:focus{outline:none;border-color:var(--mango)}
+  .big{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:24px;line-height:1.05}
+  .recs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  .rec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .rec .lbl{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .rec .v{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:20px;margin-top:3px}
+  .rec .d{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .addgrid{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;font-family:inherit;font-size:16px;padding:12px;border:1.5px solid var(--grid);border-radius:11px;background:#fffdf8;color:var(--ink)}
+  .field input:focus{outline:none;border-color:var(--mango);box-shadow:0 0 0 3px var(--mango-soft)}
+  .btn{appearance:none;border:0;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;padding:12px 22px;border-radius:11px;background:var(--achiote);color:#fff;white-space:nowrap}
+  .btn:hover{filter:brightness(1.05)}
+  .btn.ghost{background:#efe7d7;color:var(--ink);font-weight:600}
+  .btn.sm{padding:8px 14px;font-size:13px}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .del{appearance:none;border:0;background:transparent;color:var(--achiote);cursor:pointer;font-weight:700;font-size:16px;line-height:1;padding:2px 6px;border-radius:6px}
+  .del:hover{background:var(--achiote-soft)}
+  .backup-note{font-size:12.5px;color:var(--muted);margin-top:14px;padding-top:14px;border-top:1px dashed var(--grid)}
+  .sel{font-family:inherit;font-size:13px;padding:7px 10px;border:1.5px solid var(--grid);border-radius:9px;background:#fffdf8;margin-bottom:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  @media(max-width:760px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .grid2,.grid3,.recs{grid-template-columns:1fr}
+    .addgrid{grid-template-columns:1fr}
+    .logo b{font-size:22px}.logo span{display:none}
+    .updated{display:none}
+  }
+  @media print{
+    nav.tabs,.head-btns,.seg,.chk,.backup-note,.row-actions,#p-agregar,#month-filter{display:none!important}
+    section.panel{display:block!important}
+    .card,.kpi,.rec{break-inside:avoid;box-shadow:none}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="wrap">
+    <div class="logo"><b>Las Mulatas</b><span>Panel de Ventas</span></div>
+    <div class="head-right">
+      <div class="updated" id="updated"></div>
+      <div class="head-btns">
+        <button class="hbtn" id="btn-csv">&#8595; Excel</button>
+        <button class="hbtn" id="btn-print">&#128424; Imprimir</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap" id="tabbar">
+    <button class="tab active" data-t="resumen">Resumen</button>
+    <button class="tab" data-t="diarias">Ventas diarias</button>
+    <button class="tab" data-t="semanal">Por semana</button>
+    <button class="tab" data-t="mensual">Por mes</button>
+    <button class="tab" data-t="patrones">Días y horas</button>
+    <button class="tab add" data-t="agregar">&#65291; Agregar venta</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="panel active" id="p-resumen">
+    <h2 class="title">Restaurante Las Mulatas</h2>
+    <p class="sub" id="periodo-txt"></p>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid3">
+      <div class="card" style="margin-bottom:0">
+        <h3>¿Superamos el mes pasado?</h3>
+        <p class="note" id="comp-lbl"></p>
+        <div class="prog"><span id="comp-bar"></span></div>
+        <div id="comp-txt" style="font-size:13px"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <h3>Proyección del mes</h3>
+        <p class="note">Al ritmo actual, cómo cerraría el mes.</p>
+        <div class="big" id="proj-val" style="color:var(--mango)"></div>
+        <div id="proj-txt" style="font-size:13px;margin-top:6px"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <h3>Ritmo reciente</h3>
+        <p class="note">Últimos 7 días vs. 7 anteriores.</p>
+        <div class="big" id="trend-val"></div>
+        <div id="trend-txt" style="font-size:13px;margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div id="insight"></div>
+    <div class="recs" id="records"></div>
+
+    <div class="card">
+      <h3>Ventas de los últimos 30 días</h3>
+      <p class="note">Cada barra es un día. Pasa el cursor para ver el valor. En rojo, los días que agregaste tú.</p>
+      <div id="mini-chart"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-diarias">
+    <h2 class="title">Ventas diarias</h2>
+    <p class="sub">Evolución día por día. La línea verde suaviza el ruido para que veas hacia dónde va.</p>
+    <div class="card">
+      <div class="seg" id="daily-range">
+        <button data-r="30">30 días</button>
+        <button data-r="60" class="on">60 días</button>
+        <button data-r="90">90 días</button>
+        <button data-r="9999">Todo</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="chk-ma" checked> Mostrar tendencia (promedio 7 días)</label>
+      <span class="leg"><i style="background:var(--mango)"></i>Ventas del día</span>
+      <span class="leg"><i style="background:var(--verde)"></i>Tendencia 7d</span>
+      <div id="daily-chart"></div>
+    </div>
+    <div class="card">
+      <h3>Detalle diario</h3>
+      <p class="note">Del más reciente al más antiguo. Verde = mejores días, rojo = más flojos.</p>
+      <select class="sel" id="month-filter"></select>
+      <div class="tbl-wrap">
+        <table id="daily-table"><thead><tr>
+          <th>Fecha</th><th>Día</th><th class="num">Ventas</th><th class="num">Tickets</th><th class="num">Ticket prom.</th><th></th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-semanal">
+    <h2 class="title">Por semana</h2>
+    <p class="sub">Suma de cada semana (lunes a domingo). Sirve para ver la tendencia sin el ruido del día a día.</p>
+    <div class="card"><h3>Ventas por semana</h3><div id="weekly-chart"></div></div>
+    <div class="card">
+      <h3>Detalle semanal</h3>
+      <div class="tbl-wrap">
+        <table id="weekly-table"><thead><tr>
+          <th>Semana</th><th class="num">Ventas</th><th class="num">Días</th><th class="num">Prom. diario</th><th class="num">vs semana previa</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-mensual">
+    <h2 class="title">Por mes</h2>
+    <p class="sub">El panorama grande: cómo crece o baja el negocio mes a mes.</p>
+    <div class="card"><h3>Ventas por mes</h3><div id="monthly-chart"></div></div>
+    <div class="card">
+      <h3>Detalle mensual</h3>
+      <p class="note">El mes en curso puede estar incompleto; se marca aparte.</p>
+      <div class="tbl-wrap">
+        <table id="monthly-table"><thead><tr>
+          <th>Mes</th><th class="num">Ventas</th><th class="num">Días</th><th class="num">Tickets</th><th class="num">Prom. diario</th><th class="num">Crecimiento</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-patrones">
+    <h2 class="title">Días y horas</h2>
+    <p class="sub">Aquí ves qué días te rinden y a qué horas se mueve el local.</p>
+    <div class="card">
+      <h3>Promedio por día de la semana</h3>
+      <p class="note">En rojo tus días más flojos, en verde los más fuertes. Se actualiza con cada venta que agregas.</p>
+      <div id="weekday-chart"></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Horas pico</h3>
+        <p class="note">Ventas por hora del día · dato histórico Mar–Ago 2026.</p>
+        <div id="hourly-chart"></div>
+      </div>
+      <div class="card">
+        <h3>Ventas por cajero</h3>
+        <p class="note">Dato histórico Mar–Ago 2026.</p>
+        <div class="tbl-wrap" style="max-height:none">
+          <table id="op-table"><thead><tr><th>Cajero</th><th class="num">Ventas</th><th class="num">Tickets</th><th class="num">Ticket prom.</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-agregar">
+    <h2 class="title">Agregar venta del día</h2>
+    <p class="sub">Solo dos datos y listo. Todo lo demás se recalcula solo.</p>
+    <div class="card">
+      <div class="addgrid">
+        <div class="field">
+          <label for="in-fecha">Fecha</label>
+          <input type="date" id="in-fecha">
+        </div>
+        <div class="field">
+          <label for="in-total">Total vendido del día ($)</label>
+          <input type="number" id="in-total" inputmode="decimal" step="0.01" min="0" placeholder="Ej: 720.50">
+        </div>
+        <button class="btn" id="btn-guardar">Guardar venta</button>
+      </div>
+      <p class="note" style="margin-top:12px">Si guardas una fecha que ya existe, se actualiza con el nuevo valor.</p>
+    </div>
+
+    <div class="card">
+      <h3>Últimas ventas agregadas por ti</h3>
+      <p class="note" id="added-count"></p>
+      <div class="tbl-wrap" style="max-height:320px">
+        <table id="added-table"><thead><tr><th>Fecha</th><th>Día</th><th class="num">Ventas</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="backup-note">
+        <b>Respaldo (importante):</b> tus ventas nuevas se guardan en este navegador. Para no perderlas o pasarlas a otra
+        computadora, descarga el respaldo cada cierto tiempo.
+        <div class="row-actions">
+          <button class="btn ghost sm" id="btn-export">&#8595; Descargar respaldo</button>
+          <button class="btn ghost sm" id="btn-import">&#8593; Cargar respaldo</button>
+          <input type="file" id="file-import" accept="application/json" style="display:none">
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+//================ DATOS HISTÓRICOS ================
+const HIST = [["2026-03-15",1013.99,36],["2026-03-16",467.5,27],["2026-03-17",273.25,34],["2026-03-18",531.25,37],["2026-03-19",636.75,41],["2026-03-20",785.32,57],["2026-03-21",512.5,31],["2026-03-22",1267.69,45],["2026-03-23",577.0,52],["2026-03-24",379.6,38],["2026-03-25",538.58,53],["2026-03-26",428.25,47],["2026-03-27",535.2,49],["2026-03-28",516.35,31],["2026-03-29",805.0,36],["2026-03-30",463.03,49],["2026-03-31",439.05,36],["2026-04-01",420.0,41],["2026-04-02",474.18,41],["2026-04-03",891.36,48],["2026-04-04",439.35,24],["2026-04-05",500.0,25],["2026-04-06",351.25,41],["2026-04-07",473.5,39],["2026-04-08",429.89,47],["2026-04-09",468.25,53],["2026-04-10",435.14,68],["2026-04-11",583.19,34],["2026-04-12",782.98,38],["2026-04-13",528.64,51],["2026-04-14",514.49,67],["2026-04-15",549.13,67],["2026-04-16",392.0,43],["2026-04-17",416.0,42],["2026-04-18",726.75,32],["2026-04-19",1102.25,49],["2026-04-20",483.12,55],["2026-04-21",498.77,48],["2026-04-22",473.5,53],["2026-04-23",434.26,45],["2026-04-24",428.75,49],["2026-04-25",533.7,30],["2026-04-26",841.14,36],["2026-04-27",503.35,49],["2026-04-28",487.08,51],["2026-04-29",458.5,49],["2026-04-30",500.35,42],["2026-05-01",747.25,38],["2026-05-02",864.17,33],["2026-05-03",946.85,42],["2026-05-04",576.5,60],["2026-05-05",482.5,55],["2026-05-06",374.25,48],["2026-05-07",455.75,46],["2026-05-08",499.68,48],["2026-05-09",591.3,33],["2026-05-10",1971.75,55],["2026-05-11",653.5,68],["2026-05-12",536.68,55],["2026-05-13",423.25,51],["2026-05-14",454.5,53],["2026-05-15",361.75,50],["2026-05-16",552.5,30],["2026-05-17",395.0,20],["2026-05-18",521.0,50],["2026-05-19",757.47,59],["2026-05-20",428.0,54],["2026-05-21",549.75,50],["2026-05-22",571.75,59],["2026-05-23",289.75,17],["2026-05-24",746.1,35],["2026-05-25",676.75,31],["2026-05-26",516.25,57],["2026-05-27",402.0,49],["2026-05-28",555.81,58],["2026-05-29",777.0,67],["2026-05-30",734.25,37],["2026-05-31",937.75,45],["2026-06-01",813.75,69],["2026-06-02",535.69,60],["2026-06-03",453.7,53],["2026-06-04",572.75,62],["2026-06-05",500.75,42],["2026-06-06",645.2,32],["2026-06-07",639.42,34],["2026-06-08",489.5,55],["2026-06-09",359.0,45],["2026-06-10",530.42,72],["2026-06-11",429.0,54],["2026-06-12",530.25,48],["2026-06-13",223.25,15],["2026-06-14",652.76,27],["2026-06-15",478.01,58],["2026-06-16",469.22,57],["2026-06-17",376.5,41],["2026-06-18",734.75,63],["2026-06-19",932.25,70],["2026-06-20",808.97,36],["2026-06-21",1377.26,52],["2026-06-22",683.8,62],["2026-06-23",474.85,51],["2026-06-24",417.0,41],["2026-06-25",1004.75,79],["2026-06-26",839.35,43],["2026-06-27",640.28,40],["2026-06-28",1160.54,45],["2026-06-29",359.39,45],["2026-06-30",557.0,60],["2026-07-01",398.25,50],["2026-07-02",524.0,50],["2026-07-03",613.0,61],["2026-07-04",877.59,42],["2026-07-05",945.25,42],["2026-07-06",575.25,63],["2026-07-07",458.2,49],["2026-07-08",586.64,60],["2026-07-09",946.92,76],["2026-07-10",949.75,79],["2026-07-11",1101.8,51],["2026-07-12",676.13,26],["2026-07-13",530.25,65],["2026-07-14",467.0,50],["2026-07-15",811.47,82],["2026-07-16",748.5,70],["2026-07-17",981.52,73],["2026-07-18",1008.41,48],["2026-07-19",684.12,29],["2026-07-20",580.5,65],["2026-07-21",670.25,57],["2026-07-22",697.51,59],["2026-07-23",488.14,46],["2026-07-24",791.7,69],["2026-07-25",1238.21,29],["2026-07-26",697.5,32],["2026-07-27",564.5,59],["2026-07-28",611.5,57],["2026-07-29",674.25,66],["2026-07-30",727.65,63],["2026-07-31",578.33,61],["2026-08-01",889.02,34],["2026-08-02",884.6,40],["2026-08-03",707.75,68],["2026-08-04",747.45,70],["2026-08-05",498.75,58],["2026-08-06",737.37,59],["2026-08-07",847.25,63],["2026-08-08",881.85,42],["2026-08-09",909.85,36],["2026-08-10",891.1,37],["2026-08-11",555.5,70],["2026-08-12",732.09,63],["2026-08-13",696.9,77],["2026-08-14",809.15,77],["2026-08-15",872.25,36]];
+const EXTRA = {"hourly":{"6":76.25,"7":440.25,"8":2834.28,"9":3504.43,"10":5821.37,"11":5174.53,"12":13355.65,"13":23196.6,"14":20857.7,"15":9994.02,"16":4261.72,"17":2166.62,"18":1160.48,"19":820.25,"20":1311.0,"21":1292.27,"22":247.5},"op":{"PALMA DELGADO MARIA VERONICA":{"t":29378.56,"n":2433},"SALTOS GUTIERREZ DAIKY ANTONIO":{"t":3346.71,"n":199},"CAÑARTE CARRILLO REINA SOFIA":{"t":21239.39,"n":1660},"PADILLA CUADROS RODMAN ENRIQUE":{"t":4399.53,"n":274},"LOPEZ BRIONES MARIA GABRIELA":{"t":31854.07,"n":2323},"VILLAVICENCIO OYOS NIBEN ANDRES":{"t":6296.66,"n":577}}};
+
+//================ ALMACENAMIENTO ================
+const KEY='mulatas_ventas_v1';
+let mem={};
+function loadAdded(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{};}catch(e){return mem;}}
+function saveAdded(o){mem=o;try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+
+//================ UTILIDADES ================
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_ORD=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_L=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const fmt=new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0=new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD',maximumFractionDigits:0});
+const num=new Intl.NumberFormat('es-EC');
+function parseDate(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function weekdayIdx(s){return (parseDate(s).getDay()+6)%7;}
+function fmtDayDate(s){const d=parseDate(s);return d.getDate()+' '+MESES[d.getMonth()];}
+function daysInMonth(y,m){return new Date(y,m,0).getDate();}
+function pct(x){return (x>=0?'+':'')+x.toFixed(1)+'%';}
+
+function merged(){
+  const m={};
+  HIST.forEach(function(r){m[r[0]]={t:r[1],n:r[2],src:'h'};});
+  const add=loadAdded();
+  Object.keys(add).forEach(function(d){m[d]={t:add[d],n:null,src:'u'};});
+  return Object.keys(m).map(function(d){return Object.assign({d:d},m[d]);}).sort(function(a,b){return a.d<b.d?-1:1;});
+}
+
+//================ GRÁFICOS SVG ================
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function barChart(el,items,opts){
+  opts=opts||{};var h=opts.h||230,color=opts.color||'var(--mango)';
+  var W=Math.max(items.length*30+40,600),pl=8,pr=8,pt=16,pb=42;
+  var max=Math.max.apply(null,[1].concat(items.map(function(i){return i.v;})));
+  var bw=(W-pl-pr)/items.length,bars='',labels='',grid='';
+  for(var g=0;g<=3;g++){var gy=pt+(h-pt-pb)*g/3,gv=max*(1-g/3);grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+gy+'" y2="'+gy+'" stroke="var(--grid)"/><text x="'+(W-pr)+'" y="'+(gy-3)+'" text-anchor="end" font-size="9.5" fill="var(--muted)">'+fmt0.format(gv)+'</text>';}
+  items.forEach(function(it,i){
+    var bh=(it.v/max)*(h-pt-pb),x=pl+i*bw,y=h-pb-bh,c=it.color||color;
+    bars+='<rect x="'+(x+bw*0.14)+'" y="'+y+'" width="'+(bw*0.72)+'" height="'+Math.max(bh,1)+'" rx="3" fill="'+c+'"><title>'+esc(it.label)+': '+fmt.format(it.v)+'</title></rect>';
+    if(it.lbl!==false)labels+='<text x="'+(x+bw/2)+'" y="'+(h-pb+16)+'" text-anchor="middle" font-size="10.5" fill="var(--muted)">'+esc(it.short!=null?it.short:it.label)+'</text>';
+  });
+  el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+h+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+W+'px">'+grid+bars+labels+'</svg>';
+  el.style.overflowX='auto';
+}
+function lineChart(el,items,opts){
+  opts=opts||{};var h=opts.h||280,ma=opts.ma||null;
+  var W=Math.max(items.length*16+60,640),pl=10,pr=10,pt=16,pb=42;
+  var valsAll=items.map(function(i){return i.v;});
+  if(ma)valsAll=valsAll.concat(ma.filter(function(v){return v!=null;}));
+  var max=Math.max.apply(null,[1].concat(valsAll));
+  var iw=(W-pl-pr)/Math.max(items.length-1,1);
+  function X(i){return pl+i*iw;} function Y(v){return h-pb-(v/max)*(h-pt-pb);}
+  var path='',dots='',grid='',maPath='';
+  for(var g=0;g<=3;g++){var gy=pt+(h-pt-pb)*g/3,gv=max*(1-g/3);grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+gy+'" y2="'+gy+'" stroke="var(--grid)"/><text x="'+(W-pr)+'" y="'+(gy-3)+'" text-anchor="end" font-size="9.5" fill="var(--muted)">'+fmt0.format(gv)+'</text>';}
+  items.forEach(function(it,i){var x=X(i),y=Y(it.v);path+=(i?'L':'M')+x+' '+y+' ';dots+='<circle cx="'+x+'" cy="'+y+'" r="2.4" fill="var(--mango)"><title>'+esc(it.label)+': '+fmt.format(it.v)+'</title></circle>';});
+  var area=path+'L'+X(items.length-1)+' '+(h-pb)+' L'+X(0)+' '+(h-pb)+' Z';
+  if(ma){var started=false;ma.forEach(function(v,i){if(v==null)return;var x=X(i),y=Y(v);maPath+=(started?'L':'M')+x+' '+y+' ';started=true;});}
+  var xlabels='',step=Math.ceil(items.length/12);
+  items.forEach(function(it,i){if(i%step===0)xlabels+='<text x="'+X(i)+'" y="'+(h-pb+16)+'" text-anchor="middle" font-size="9.5" fill="var(--muted)">'+esc(it.short)+'</text>';});
+  el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+h+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+Math.min(W,900)+'px">'+grid+'<path d="'+area+'" fill="var(--mango-soft)" opacity=".5"/><path d="'+path+'" fill="none" stroke="var(--mango)" stroke-width="2"/>'+(maPath?'<path d="'+maPath+'" fill="none" stroke="var(--verde)" stroke-width="2.4"/>':'')+dots+xlabels+'</svg>';
+  el.style.overflowX='auto';
+}
+function movingAvg(vals,win){return vals.map(function(_,i){if(i<win-1)return null;var s=0;for(var j=i-win+1;j<=i;j++)s+=vals[j];return s/win;});}
+
+//================ RENDER ================
+var curRange=60, showMA=true, curMonthFilter='all';
+function render(){
+  var data=merged();
+  var totalV=data.reduce(function(s,x){return s+x.t;},0), dias=data.length;
+  var withN=data.filter(function(x){return x.n!=null;});
+  var totalTk=withN.reduce(function(s,x){return s+x.n;},0);
+  var promDia=totalV/dias;
+  var ticketProm=totalTk?withN.reduce(function(s,x){return s+x.t;},0)/totalTk:0;
+  var mejor=data.reduce(function(a,b){return b.t>a.t?b:a;});
+  var flojo=data.reduce(function(a,b){return b.t<a.t?b:a;});
+  var first=data[0].d,last=data[data.length-1].d;
+
+  document.getElementById('updated').innerHTML='Datos hasta <b>'+fmtDayDate(last)+'</b><br>'+dias+' días registrados';
+  document.getElementById('periodo-txt').textContent='Periodo: '+fmtDayDate(first)+' → '+fmtDayDate(last)+' · '+dias+' días con ventas';
+
+  // Ventas del mes actual acumulado + comparación vs mes anterior a la misma fecha
+  var moAll=monthAgg(data), curKey=last.slice(0,7), cm=curKey.split('-').map(Number);
+  var curMonthTotal=moAll[curKey].t, lastDayNum=parseDate(last).getDate();
+  var pKey=prevMonthKey(curKey), pAgg=moAll[pKey], mesG=null, mesGtxt='mes en curso';
+  if(pAgg){
+    var pSame=pAgg.days.filter(function(d){return parseDate(d.d).getDate()<=lastDayNum;}).reduce(function(s,d){return s+d.t;},0);
+    mesG=pSame?(curMonthTotal/pSame-1)*100:null;
+    if(mesG!=null)mesGtxt='<span class="'+(mesG>=0?'up':'down')+'">'+pct(mesG)+'</span> vs '+MESES_L[(cm[1]-2+12)%12]+' a la fecha';
+  }
+  var mesKpiClass=(mesG==null?'':mesG>=0?' good':' warn');
+
+  document.getElementById('kpis').innerHTML=
+    '<div class="kpi"><div class="lbl">Ventas totales</div><div class="val">'+fmt0.format(totalV)+'</div><div class="hint">en '+dias+' días</div></div>'+
+    '<div class="kpi"><div class="lbl">Promedio diario</div><div class="val">'+fmt0.format(promDia)+'</div><div class="hint">por día abierto</div></div>'+
+    '<div class="kpi'+mesKpiClass+'"><div class="lbl">Ventas de '+MESES_L[cm[1]-1]+'</div><div class="val">'+fmt0.format(curMonthTotal)+'</div><div class="hint">'+mesGtxt+'</div></div>'+
+    '<div class="kpi"><div class="lbl">Ticket promedio</div><div class="val">'+(ticketProm?fmt.format(ticketProm):'—')+'</div><div class="hint">'+num.format(totalTk)+' tickets</div></div>';
+
+  renderEsteMes(data,last);
+  renderTrend(data);
+  renderInsight(data);
+  renderRecords(data,mejor);
+
+  var last30=data.slice(-30).map(function(x){return {label:DIAS[parseDate(x.d).getDay()]+' '+fmtDayDate(x.d),short:parseDate(x.d).getDate(),v:x.t,color:x.src==='u'?'var(--achiote)':'var(--mango)'};});
+  barChart(document.getElementById('mini-chart'),last30,{h:200});
+
+  renderDaily(data);
+  buildMonthFilter(data);
+  renderDailyTable(data,mejor.t,flojo.t);
+  renderWeekly(data);
+  renderMonthly(data);
+
+  var wdAvg=weekdayAverages(data);
+  var sorted=wdAvg.slice().sort(function(a,b){return a.avg-b.avg;});
+  var low={},high={};sorted.slice(0,2).forEach(function(x){low[x.i]=1;});sorted.slice(-2).forEach(function(x){high[x.i]=1;});
+  barChart(document.getElementById('weekday-chart'),wdAvg.map(function(x){return {label:x.label,short:x.label.slice(0,3),v:x.avg,color:low[x.i]?'var(--achiote)':high[x.i]?'var(--verde)':'var(--mango)'};}),{h:240});
+
+  var hrs=Object.keys(EXTRA.hourly).map(Number).sort(function(a,b){return a-b;});
+  var hmax=Math.max.apply(null,Object.keys(EXTRA.hourly).map(function(k){return EXTRA.hourly[k];}));
+  barChart(document.getElementById('hourly-chart'),hrs.map(function(h){return {label:h+':00',short:h,v:EXTRA.hourly[h],color:EXTRA.hourly[h]>=hmax*0.6?'var(--verde)':'var(--mango)'};}),{h:230});
+
+  var ops=Object.keys(EXTRA.op).map(function(k){return [k,EXTRA.op[k]];}).sort(function(a,b){return b[1].t-a[1].t;});
+  document.querySelector('#op-table tbody').innerHTML=ops.map(function(o){
+    var name=o[0],v=o[1];
+    var nm=name.split(' ').slice(0,2).map(function(w){return w[0]+w.slice(1).toLowerCase();}).join(' ');
+    return '<tr><td>'+esc(nm)+'</td><td class="num">'+fmt0.format(v.t)+'</td><td class="num">'+num.format(v.n)+'</td><td class="num">'+fmt.format(v.t/v.n)+'</td></tr>';
+  }).join('');
+
+  renderAddedTable();
+}
+
+function weekdayAverages(data){
+  var wd=[[],[],[],[],[],[],[]];
+  data.forEach(function(x){wd[weekdayIdx(x.d)].push(x.t);});
+  return wd.map(function(a,i){return {i:i,label:DIAS_ORD[i],avg:a.length?a.reduce(function(s,v){return s+v;},0)/a.length:0,n:a.length};});
+}
+function monthAgg(data){
+  var mo={};
+  data.forEach(function(x){var k=x.d.slice(0,7);if(!mo[k])mo[k]={t:0,n:0,tk:0,days:[]};mo[k].t+=x.t;mo[k].n++;mo[k].tk+=(x.n||0);mo[k].days.push(x);});
+  return mo;
+}
+function prevMonthKey(k){var p=k.split('-').map(Number),y=p[0],m=p[1]-1;if(m<1){m=12;y--;}return y+'-'+String(m).padStart(2,'0');}
+
+function renderEsteMes(data,last){
+  var mo=monthAgg(data), curKey=last.slice(0,7), cur=mo[curKey];
+  var p=curKey.split('-').map(Number),y=p[0],m=p[1];
+  var dim=daysInMonth(y,m), lastDay=parseDate(last).getDate();
+  var proj=cur.t/lastDay*dim;
+  var prevKey=prevMonthKey(curKey), prev=mo[prevKey], prevName=MESES_L[(m-2+12)%12];
+
+  // Card: ¿Superamos el mes pasado?
+  if(prev){
+    var barPct=Math.min(cur.t/prev.t*100,100);
+    document.getElementById('comp-bar').style.width=barPct+'%';
+    var pSame=prev.days.filter(function(d){return parseDate(d.d).getDate()<=lastDay;}).reduce(function(s,d){return s+d.t;},0);
+    var g=pSame?(cur.t/pSame-1)*100:0, projBeat=proj>=prev.t;
+    document.getElementById('comp-lbl').innerHTML='A batir: <b>'+prevName+'</b> cerró en <b>'+fmt0.format(prev.t)+'</b>';
+    document.getElementById('comp-txt').innerHTML='Llevas <b>'+fmt0.format(cur.t)+'</b> en '+lastDay+' día(s) — '+barPct.toFixed(0)+'% del total de '+prevName+'. '+
+      'A misma fecha vas <span class="'+(g>=0?'up':'down')+'">'+pct(g)+'</span>. '+
+      '<span class="'+(projBeat?'up':'down')+'">Proyección: '+(projBeat?'superas '+prevName+' ✓':'quedarías por debajo')+'.</span>';
+  }else{
+    document.getElementById('comp-bar').style.width='0%';
+    document.getElementById('comp-lbl').textContent='Aún no hay un mes anterior completo para comparar.';
+    document.getElementById('comp-txt').textContent='';
+  }
+
+  // Card: Proyección del mes
+  document.getElementById('proj-val').textContent=fmt0.format(proj);
+  var projTxt='Estimado para cerrar '+MESES_L[m-1]+' ('+dim+' días).';
+  if(prev){
+    var g2=(proj/prev.t-1)*100;
+    projTxt+='<br>Cerraría <span class="'+(g2>=0?'up':'down')+'">'+pct(g2)+'</span> vs '+prevName+' completo.';
+  }
+  document.getElementById('proj-txt').innerHTML=projTxt;
+}
+
+function renderTrend(data){
+  var el=document.getElementById('trend-val'),tx=document.getElementById('trend-txt');
+  if(data.length<14){el.textContent='—';tx.textContent='Necesitas al menos 14 días.';return;}
+  var v=data.map(function(x){return x.t;});
+  var l7=v.slice(-7).reduce(function(s,x){return s+x;},0)/7;
+  var p7=v.slice(-14,-7).reduce(function(s,x){return s+x;},0)/7;
+  var g=(l7/p7-1)*100;
+  el.innerHTML='<span class="'+(g>=0?'up':'down')+'">'+pct(g)+'</span>';
+  tx.innerHTML='Promedio diario '+fmt0.format(l7)+' (antes '+fmt0.format(p7)+'). '+(g>=0?'El negocio viene subiendo.':'Ojo, viene bajando.');
+}
+
+function renderInsight(data){
+  var wdAvg=weekdayAverages(data).sort(function(a,b){return a.avg-b.avg;});
+  var best=wdAvg[wdAvg.length-1];
+  document.getElementById('insight').innerHTML=
+    '<div class="callout"><div class="ico">📉</div><p>Tus días más flojos son <b>'+wdAvg[0].label+'</b> y <b>'+wdAvg[1].label+'</b> (promedian '+fmt0.format(wdAvg[0].avg)+' y '+fmt0.format(wdAvg[1].avg)+'). Son los días para empujar promos, combos o eventos.</p></div>'+
+    '<div class="callout tip"><div class="ico">🔥</div><p>El día más fuerte es el <b>'+best.label+'</b> con '+fmt0.format(best.avg)+' de promedio. Asegura personal e inventario completos ese día.</p></div>';
+}
+
+function renderRecords(data,mejor){
+  var wk={};
+  data.forEach(function(x){var k=isoWeekKey(x.d);wk[k]=(wk[k]||0)+x.t;});
+  var bw=Object.keys(wk).map(function(k){return [k,wk[k]];}).sort(function(a,b){return b[1]-a[1];})[0];
+  var bwEnd=new Date(parseDate(bw[0]));bwEnd.setDate(bwEnd.getDate()+6);
+  var mo=monthAgg(data);
+  var bm=Object.keys(mo).map(function(k){return [k,mo[k]];}).sort(function(a,b){return b[1].t-a[1].t;})[0];
+  var bmp=bm[0].split('-');
+  document.getElementById('records').innerHTML=
+    '<div class="rec"><div class="lbl">🏆 Mejor día</div><div class="v">'+fmt0.format(mejor.t)+'</div><div class="d">'+DIAS[parseDate(mejor.d).getDay()]+' '+fmtDayDate(mejor.d)+'</div></div>'+
+    '<div class="rec"><div class="lbl">🏆 Mejor semana</div><div class="v">'+fmt0.format(bw[1])+'</div><div class="d">'+fmtDayDate(bw[0])+' – '+bwEnd.getDate()+' '+MESES[bwEnd.getMonth()]+'</div></div>'+
+    '<div class="rec"><div class="lbl">🏆 Mejor mes</div><div class="v">'+fmt0.format(bm[1].t)+'</div><div class="d">'+MESES_L[+bmp[1]-1]+' '+bmp[0]+'</div></div>';
+}
+
+function renderDaily(data){
+  var slice=data.slice(-curRange);
+  var ma=showMA?movingAvg(slice.map(function(x){return x.t;}),7):null;
+  lineChart(document.getElementById('daily-chart'),slice.map(function(x){return {label:DIAS[parseDate(x.d).getDay()]+' '+fmtDayDate(x.d),short:fmtDayDate(x.d),v:x.t};}),{h:280,ma:ma});
+}
+function buildMonthFilter(data){
+  var seen={},months=[];
+  data.forEach(function(x){var k=x.d.slice(0,7);if(!seen[k]){seen[k]=1;months.push(k);}});
+  months.sort().reverse();
+  var sel=document.getElementById('month-filter');
+  if(sel.dataset.built)return;
+  sel.innerHTML='<option value="all">Todos los meses</option>'+months.map(function(k){var p=k.split('-');return '<option value="'+k+'">'+MESES_L[+p[1]-1]+' '+p[0]+'</option>';}).join('');
+  sel.dataset.built='1';
+}
+function renderDailyTable(data,maxv,minv){
+  var rows=data.slice().reverse();
+  if(curMonthFilter!=='all')rows=rows.filter(function(x){return x.d.slice(0,7)===curMonthFilter;});
+  document.querySelector('#daily-table tbody').innerHTML=rows.map(function(x){
+    var wi=parseDate(x.d).getDay(),tp=x.n?fmt.format(x.t/x.n):'—',pill='';
+    if(x.t===maxv)pill='<span class="pill high">Mejor</span>';
+    else if(x.t===minv)pill='<span class="pill low">Más flojo</span>';
+    else if(x.src==='u')pill='<span class="pill new">Agregado</span>';
+    return '<tr><td>'+x.d.split('-').reverse().join('/')+'</td><td>'+DIAS[wi]+'</td><td class="num">'+fmt.format(x.t)+'</td><td class="num">'+(x.n!=null?num.format(x.n):'—')+'</td><td class="num">'+tp+'</td><td>'+pill+'</td></tr>';
+  }).join('');
+}
+function isoWeekKey(d){var dt=parseDate(d),day=(dt.getDay()+6)%7,mon=new Date(dt);mon.setDate(dt.getDate()-day);return mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');}
+function renderWeekly(data){
+  var wk={};
+  data.forEach(function(x){var k=isoWeekKey(x.d);if(!wk[k])wk[k]={t:0,n:0};wk[k].t+=x.t;wk[k].n++;});
+  var keys=Object.keys(wk).sort();
+  barChart(document.getElementById('weekly-chart'),keys.map(function(k){return {label:'Sem. '+fmtDayDate(k),short:fmtDayDate(k),v:wk[k].t};}),{h:250});
+  var rev=keys.slice().reverse();
+  document.querySelector('#weekly-table tbody').innerHTML=rev.map(function(k,ri){
+    var w=wk[k],end=new Date(parseDate(k));end.setDate(end.getDate()+6);
+    var prevK=rev[ri+1],gcell='—';
+    if(prevK){var g=(w.t/wk[prevK].t-1)*100;gcell='<span class="'+(g>=0?'up':'down')+'">'+pct(g)+'</span>';}
+    return '<tr><td>'+fmtDayDate(k)+' – '+end.getDate()+' '+MESES[end.getMonth()]+'</td><td class="num">'+fmt.format(w.t)+'</td><td class="num">'+w.n+'</td><td class="num">'+fmt.format(w.t/w.n)+'</td><td class="num">'+gcell+'</td></tr>';
+  }).join('');
+}
+function renderMonthly(data){
+  var mo=monthAgg(data),keys=Object.keys(mo).sort();
+  var lastKey=data[data.length-1].d.slice(0,7);
+  barChart(document.getElementById('monthly-chart'),keys.map(function(k){var p=k.split('-');return {label:MESES[+p[1]-1]+' '+p[0],short:MESES[+p[1]-1],v:mo[k].t,color:k===lastKey?'var(--verde)':'var(--mango)'};}),{h:250});
+  var rev=keys.slice().reverse();
+  document.querySelector('#monthly-table tbody').innerHTML=rev.map(function(k,ri){
+    var p=k.split('-'),v=mo[k],prevK=rev[ri+1],gcell='—';
+    if(prevK){var g=(v.t/mo[prevK].t-1)*100;gcell='<span class="'+(g>=0?'up':'down')+'">'+pct(g)+'</span>';}
+    var partial=k===lastKey?' <span class="pill new">en curso</span>':'';
+    return '<tr><td>'+MESES_L[+p[1]-1]+' '+p[0]+partial+'</td><td class="num">'+fmt.format(v.t)+'</td><td class="num">'+v.n+'</td><td class="num">'+(v.tk?num.format(v.tk):'—')+'</td><td class="num">'+fmt.format(v.t/v.n)+'</td><td class="num">'+gcell+'</td></tr>';
+  }).join('');
+}
+function renderAddedTable(){
+  var add=loadAdded(),keys=Object.keys(add).sort().reverse();
+  document.getElementById('added-count').textContent=keys.length?keys.length+' día(s) agregados por ti.':'Aún no has agregado ninguna venta. Usa el formulario de arriba.';
+  document.querySelector('#added-table tbody').innerHTML=keys.map(function(d){
+    return '<tr><td>'+d.split('-').reverse().join('/')+'</td><td>'+DIAS[parseDate(d).getDay()]+'</td><td class="num">'+fmt.format(add[d])+'</td><td class="num"><button class="del" data-del="'+d+'" title="Eliminar">✕</button></td></tr>';
+  }).join('');
+}
+
+//================ INTERACCIÓN ================
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},2200);}
+
+document.getElementById('tabbar').addEventListener('click',function(e){
+  var b=e.target.closest('.tab');if(!b)return;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  b.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('p-'+b.dataset.t).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('daily-range').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#daily-range button').forEach(function(x){x.classList.remove('on');});
+  b.classList.add('on');curRange=+b.dataset.r;renderDaily(merged());
+});
+document.getElementById('chk-ma').addEventListener('change',function(e){showMA=e.target.checked;renderDaily(merged());});
+document.getElementById('month-filter').addEventListener('change',function(e){
+  curMonthFilter=e.target.value;
+  var data=merged(),mejor=data.reduce(function(a,b){return b.t>a.t?b:a;}),flojo=data.reduce(function(a,b){return b.t<a.t?b:a;});
+  renderDailyTable(data,mejor.t,flojo.t);
+});
+document.getElementById('btn-guardar').addEventListener('click',function(){
+  var f=document.getElementById('in-fecha').value,t=parseFloat(document.getElementById('in-total').value);
+  if(!f){toast('Elige la fecha');return;}
+  if(!(t>=0)||isNaN(t)){toast('Escribe el total del día');return;}
+  var add=loadAdded(),existed=add[f]!=null;add[f]=Math.round(t*100)/100;saveAdded(add);
+  document.getElementById('in-total').value='';
+  render();toast(existed?'Venta actualizada ✓':'Venta guardada ✓');
+});
+document.getElementById('added-table').addEventListener('click',function(e){
+  var b=e.target.closest('[data-del]');if(!b)return;
+  var d=b.dataset.del;
+  if(confirm('¿Eliminar la venta del '+d.split('-').reverse().join('/')+'?')){
+    var add=loadAdded();delete add[d];saveAdded(add);render();toast('Venta eliminada');
+  }
+});
+document.getElementById('btn-export').addEventListener('click',function(){
+  var blob=new Blob([JSON.stringify(loadAdded(),null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='respaldo-ventas-mulatas-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  toast('Respaldo descargado');
+});
+document.getElementById('btn-import').addEventListener('click',function(){document.getElementById('file-import').click();});
+document.getElementById('file-import').addEventListener('change',function(e){
+  var file=e.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){try{var obj=JSON.parse(r.result);var add=loadAdded();Object.keys(obj).forEach(function(k){add[k]=obj[k];});saveAdded(add);render();toast('Respaldo cargado ✓');}catch(err){toast('Archivo no válido');}};
+  r.readAsText(file);e.target.value='';
+});
+document.getElementById('btn-csv').addEventListener('click',function(){
+  var data=merged(),csv='Fecha,Dia,Ventas,Tickets\n';
+  data.forEach(function(x){csv+=x.d+','+DIAS[parseDate(x.d).getDay()]+','+x.t.toFixed(2)+','+(x.n!=null?x.n:'')+'\n';});
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ventas-mulatas-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('Excel (CSV) descargado');
+});
+document.getElementById('btn-print').addEventListener('click',function(){
+  document.querySelector('.tab[data-t="resumen"]').click();
+  setTimeout(function(){window.print();},300);
+});
+
+// init
+document.getElementById('in-fecha').value=new Date().toISOString().slice(0,10);
+render();
+</script>
+</body>
+</html>
