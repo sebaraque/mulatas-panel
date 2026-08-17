@@ -1,4 +1,4 @@
-const CACHE='mulatas-panel-v1';
+const CACHE='mulatas-panel-v2';
 const ASSETS=[
   './',
   './index.html',

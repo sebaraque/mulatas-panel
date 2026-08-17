@@ -37,6 +37,11 @@
   .head-right{display:flex;align-items:center;gap:14px}
   .updated{font-size:12px;color:#b9c6c0;text-align:right;line-height:1.3}
   .updated b{color:#f4eee1;font-weight:600}
+  .statusbar{background:var(--paper);text-align:center;padding:6px 18px 0}
+  .cloud-status{display:inline-block;font-size:12px;font-weight:600;color:var(--muted);padding:4px 12px;border-radius:20px;background:#efe7d7}
+  .cloud-status.ok{color:#1c6b5b;background:var(--verde-soft)}
+  .cloud-status.warn{color:#96590d;background:var(--mango-soft)}
+  .cloud-status.sync{color:var(--muted);background:#efe7d7}
   .head-btns{display:flex;gap:8px}
   .hbtn{appearance:none;border:1px solid #3a4a49;background:transparent;color:#e9ddc9;font-family:inherit;font-size:12px;font-weight:600;padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
   .hbtn:hover{background:#2b3d3c}
@@ -134,7 +139,7 @@
     .updated{display:none}
   }
   @media print{
-    nav.tabs,.head-btns,.seg,.chk,.backup-note,.row-actions,#p-agregar,#month-filter{display:none!important}
+    nav.tabs,.head-btns,.seg,.chk,.backup-note,.row-actions,#p-agregar,#month-filter,.statusbar{display:none!important}
     section.panel{display:block!important}
     .card,.kpi,.rec{break-inside:avoid;box-shadow:none}
     body{background:#fff}
@@ -166,6 +171,8 @@
     <button class="tab add" data-t="agregar">&#65291; Agregar venta</button>
   </div>
 </nav>
+
+<div class="statusbar"><span class="cloud-status" id="cloud-status">Conectando…</span></div>
 
 <main class="wrap">
 
@@ -304,18 +311,17 @@
     </div>
 
     <div class="card">
-      <h3>Últimas ventas agregadas por ti</h3>
+      <h3>Ventas guardadas en la nube</h3>
       <p class="note" id="added-count"></p>
       <div class="tbl-wrap" style="max-height:320px">
         <table id="added-table"><thead><tr><th>Fecha</th><th>Día</th><th class="num">Ventas</th><th></th></tr></thead><tbody></tbody></table>
       </div>
       <div class="backup-note">
-        <b>Respaldo (importante):</b> tus ventas nuevas se guardan en este navegador. Para no perderlas o pasarlas a otra
-        computadora, descarga el respaldo cada cierto tiempo.
+        <b>Se guarda solo en la nube (Google):</b> lo que cargues aquí lo ve cualquier celular o compu que abra el panel.
+        No necesitas respaldar a mano. Si otra persona acaba de cargar una venta, toca "Actualizar" para verla.
         <div class="row-actions">
-          <button class="btn ghost sm" id="btn-export">&#8595; Descargar respaldo</button>
-          <button class="btn ghost sm" id="btn-import">&#8593; Cargar respaldo</button>
-          <input type="file" id="file-import" accept="application/json" style="display:none">
+          <button class="btn ghost sm" id="btn-refresh">&#8635; Actualizar</button>
+          <button class="btn ghost sm" id="btn-export">&#8595; Descargar copia</button>
         </div>
       </div>
     </div>
@@ -330,11 +336,69 @@
 const HIST = [["2026-03-15",1013.99,36],["2026-03-16",467.5,27],["2026-03-17",273.25,34],["2026-03-18",531.25,37],["2026-03-19",636.75,41],["2026-03-20",785.32,57],["2026-03-21",512.5,31],["2026-03-22",1267.69,45],["2026-03-23",577.0,52],["2026-03-24",379.6,38],["2026-03-25",538.58,53],["2026-03-26",428.25,47],["2026-03-27",535.2,49],["2026-03-28",516.35,31],["2026-03-29",805.0,36],["2026-03-30",463.03,49],["2026-03-31",439.05,36],["2026-04-01",420.0,41],["2026-04-02",474.18,41],["2026-04-03",891.36,48],["2026-04-04",439.35,24],["2026-04-05",500.0,25],["2026-04-06",351.25,41],["2026-04-07",473.5,39],["2026-04-08",429.89,47],["2026-04-09",468.25,53],["2026-04-10",435.14,68],["2026-04-11",583.19,34],["2026-04-12",782.98,38],["2026-04-13",528.64,51],["2026-04-14",514.49,67],["2026-04-15",549.13,67],["2026-04-16",392.0,43],["2026-04-17",416.0,42],["2026-04-18",726.75,32],["2026-04-19",1102.25,49],["2026-04-20",483.12,55],["2026-04-21",498.77,48],["2026-04-22",473.5,53],["2026-04-23",434.26,45],["2026-04-24",428.75,49],["2026-04-25",533.7,30],["2026-04-26",841.14,36],["2026-04-27",503.35,49],["2026-04-28",487.08,51],["2026-04-29",458.5,49],["2026-04-30",500.35,42],["2026-05-01",747.25,38],["2026-05-02",864.17,33],["2026-05-03",946.85,42],["2026-05-04",576.5,60],["2026-05-05",482.5,55],["2026-05-06",374.25,48],["2026-05-07",455.75,46],["2026-05-08",499.68,48],["2026-05-09",591.3,33],["2026-05-10",1971.75,55],["2026-05-11",653.5,68],["2026-05-12",536.68,55],["2026-05-13",423.25,51],["2026-05-14",454.5,53],["2026-05-15",361.75,50],["2026-05-16",552.5,30],["2026-05-17",395.0,20],["2026-05-18",521.0,50],["2026-05-19",757.47,59],["2026-05-20",428.0,54],["2026-05-21",549.75,50],["2026-05-22",571.75,59],["2026-05-23",289.75,17],["2026-05-24",746.1,35],["2026-05-25",676.75,31],["2026-05-26",516.25,57],["2026-05-27",402.0,49],["2026-05-28",555.81,58],["2026-05-29",777.0,67],["2026-05-30",734.25,37],["2026-05-31",937.75,45],["2026-06-01",813.75,69],["2026-06-02",535.69,60],["2026-06-03",453.7,53],["2026-06-04",572.75,62],["2026-06-05",500.75,42],["2026-06-06",645.2,32],["2026-06-07",639.42,34],["2026-06-08",489.5,55],["2026-06-09",359.0,45],["2026-06-10",530.42,72],["2026-06-11",429.0,54],["2026-06-12",530.25,48],["2026-06-13",223.25,15],["2026-06-14",652.76,27],["2026-06-15",478.01,58],["2026-06-16",469.22,57],["2026-06-17",376.5,41],["2026-06-18",734.75,63],["2026-06-19",932.25,70],["2026-06-20",808.97,36],["2026-06-21",1377.26,52],["2026-06-22",683.8,62],["2026-06-23",474.85,51],["2026-06-24",417.0,41],["2026-06-25",1004.75,79],["2026-06-26",839.35,43],["2026-06-27",640.28,40],["2026-06-28",1160.54,45],["2026-06-29",359.39,45],["2026-06-30",557.0,60],["2026-07-01",398.25,50],["2026-07-02",524.0,50],["2026-07-03",613.0,61],["2026-07-04",877.59,42],["2026-07-05",945.25,42],["2026-07-06",575.25,63],["2026-07-07",458.2,49],["2026-07-08",586.64,60],["2026-07-09",946.92,76],["2026-07-10",949.75,79],["2026-07-11",1101.8,51],["2026-07-12",676.13,26],["2026-07-13",530.25,65],["2026-07-14",467.0,50],["2026-07-15",811.47,82],["2026-07-16",748.5,70],["2026-07-17",981.52,73],["2026-07-18",1008.41,48],["2026-07-19",684.12,29],["2026-07-20",580.5,65],["2026-07-21",670.25,57],["2026-07-22",697.51,59],["2026-07-23",488.14,46],["2026-07-24",791.7,69],["2026-07-25",1238.21,29],["2026-07-26",697.5,32],["2026-07-27",564.5,59],["2026-07-28",611.5,57],["2026-07-29",674.25,66],["2026-07-30",727.65,63],["2026-07-31",578.33,61],["2026-08-01",889.02,34],["2026-08-02",884.6,40],["2026-08-03",707.75,68],["2026-08-04",747.45,70],["2026-08-05",498.75,58],["2026-08-06",737.37,59],["2026-08-07",847.25,63],["2026-08-08",881.85,42],["2026-08-09",909.85,36],["2026-08-10",891.1,37],["2026-08-11",555.5,70],["2026-08-12",732.09,63],["2026-08-13",696.9,77],["2026-08-14",809.15,77],["2026-08-15",872.25,36]];
 const EXTRA = {"hourly":{"6":76.25,"7":440.25,"8":2834.28,"9":3504.43,"10":5821.37,"11":5174.53,"12":13355.65,"13":23196.6,"14":20857.7,"15":9994.02,"16":4261.72,"17":2166.62,"18":1160.48,"19":820.25,"20":1311.0,"21":1292.27,"22":247.5},"op":{"PALMA DELGADO MARIA VERONICA":{"t":29378.56,"n":2433},"SALTOS GUTIERREZ DAIKY ANTONIO":{"t":3346.71,"n":199},"CAÑARTE CARRILLO REINA SOFIA":{"t":21239.39,"n":1660},"PADILLA CUADROS RODMAN ENRIQUE":{"t":4399.53,"n":274},"LOPEZ BRIONES MARIA GABRIELA":{"t":31854.07,"n":2323},"VILLAVICENCIO OYOS NIBEN ANDRES":{"t":6296.66,"n":577}}};
 
-//================ ALMACENAMIENTO ================
-const KEY='mulatas_ventas_v1';
-let mem={};
-function loadAdded(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{};}catch(e){return mem;}}
-function saveAdded(o){mem=o;try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+//================ NUBE (Google Sheets) + CACHÉ ================
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwJKlNh1UJD2wk3PSRyffD_BQqf_QKqknZE8qyaFSeCw3h05gGCrCWMoE0TwItX__pf4w/exec';
+const CACHE_KEY='mulatas_cloud_cache_v1';
+const PEND_KEY='mulatas_cloud_pending_v1';
+var cloudData={};   // {fecha:{t,n}} — datos que viven en la nube (más lo pendiente)
+var mem={};         // fallback si el navegador bloquea localStorage
+
+function loadCache(){try{var r=localStorage.getItem(CACHE_KEY);return r?JSON.parse(r):{};}catch(e){return mem;}}
+function saveCache(o){mem=o;try{localStorage.setItem(CACHE_KEY,JSON.stringify(o));}catch(e){}}
+function loadPending(){try{var r=localStorage.getItem(PEND_KEY);return r?JSON.parse(r):[];}catch(e){return [];}}
+function savePending(a){try{localStorage.setItem(PEND_KEY,JSON.stringify(a));}catch(e){}}
+
+function setStatus(txt,cls){var el=document.getElementById('cloud-status');if(el){el.textContent=txt;el.className='cloud-status '+(cls||'');}}
+
+// Trae todo desde la nube y vuelve a pintar
+function syncFromCloud(){
+  setStatus('Sincronizando…','sync');
+  return fetch(SHEET_URL,{method:'GET'}).then(function(r){return r.json();}).then(function(res){
+    if(res&&res.ok&&res.data){
+      cloudData=res.data;
+      // re-aplicar lo que quedó pendiente por subir
+      loadPending().forEach(function(p){
+        if(p.accion==='eliminar'){delete cloudData[p.fecha];}
+        else{cloudData[p.fecha]={t:p.total,n:(p.tickets===''||p.tickets==null?null:p.tickets)};}
+      });
+      saveCache(cloudData);
+      render();
+      flushPending();
+      var pend=loadPending().length;
+      setStatus(pend?('Guardado local · '+pend+' por subir'):'Conectado a la nube ✓', pend?'warn':'ok');
+    }else{setStatus('Sin conexión — usando copia local','warn');}
+  }).catch(function(){setStatus('Sin conexión — usando copia local','warn');});
+}
+
+// Sube al servidor todo lo pendiente, uno por uno
+function flushPending(){
+  var q=loadPending();
+  if(!q.length)return Promise.resolve();
+  var item=q[0];
+  return fetch(SHEET_URL,{method:'POST',body:JSON.stringify(item)}).then(function(r){return r.json();}).then(function(res){
+    if(res&&res.ok){
+      var rest=loadPending();rest.shift();savePending(rest);
+      if(rest.length)return flushPending();
+      setStatus('Conectado a la nube ✓','ok');
+    }else{setStatus('Guardado local · '+q.length+' por subir','warn');}
+  }).catch(function(){setStatus('Guardado local · '+q.length+' por subir','warn');});
+}
+
+// Guardar/actualizar una venta (optimista: pinta ya, sube en segundo plano)
+function cloudGuardar(fecha,total){
+  cloudData[fecha]={t:total,n:(cloudData[fecha]&&cloudData[fecha].n!=null?cloudData[fecha].n:null)};
+  saveCache(cloudData);
+  var q=loadPending();q.push({accion:'guardar',fecha:fecha,total:total,tickets:''});savePending(q);
+  render();
+  flushPending();
+}
+function cloudEliminar(fecha){
+  delete cloudData[fecha];
+  saveCache(cloudData);
+  var q=loadPending();q.push({accion:'eliminar',fecha:fecha});savePending(q);
+  render();
+  flushPending();
+}
 
 //================ UTILIDADES ================
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -353,8 +417,7 @@ function pct(x){return (x>=0?'+':'')+x.toFixed(1)+'%';}
 function merged(){
   const m={};
   HIST.forEach(function(r){m[r[0]]={t:r[1],n:r[2],src:'h'};});
-  const add=loadAdded();
-  Object.keys(add).forEach(function(d){m[d]={t:add[d],n:null,src:'u'};});
+  Object.keys(cloudData).forEach(function(d){var v=cloudData[d];m[d]={t:v.t,n:(v.n==null?null:v.n),src:'u'};});
   return Object.keys(m).map(function(d){return Object.assign({d:d},m[d]);}).sort(function(a,b){return a.d<b.d?-1:1;});
 }
 
@@ -590,10 +653,10 @@ function renderMonthly(data){
   }).join('');
 }
 function renderAddedTable(){
-  var add=loadAdded(),keys=Object.keys(add).sort().reverse();
-  document.getElementById('added-count').textContent=keys.length?keys.length+' día(s) agregados por ti.':'Aún no has agregado ninguna venta. Usa el formulario de arriba.';
+  var keys=Object.keys(cloudData).sort().reverse();
+  document.getElementById('added-count').textContent=keys.length?keys.length+' día(s) guardados en la nube.':'Aún no hay ventas cargadas. Usa el formulario de arriba.';
   document.querySelector('#added-table tbody').innerHTML=keys.map(function(d){
-    return '<tr><td>'+d.split('-').reverse().join('/')+'</td><td>'+DIAS[parseDate(d).getDay()]+'</td><td class="num">'+fmt.format(add[d])+'</td><td class="num"><button class="del" data-del="'+d+'" title="Eliminar">✕</button></td></tr>';
+    return '<tr><td>'+d.split('-').reverse().join('/')+'</td><td>'+DIAS[parseDate(d).getDay()]+'</td><td class="num">'+fmt.format(cloudData[d].t)+'</td><td class="num"><button class="del" data-del="'+d+'" title="Eliminar">✕</button></td></tr>';
   }).join('');
 }
 
@@ -623,30 +686,25 @@ document.getElementById('btn-guardar').addEventListener('click',function(){
   var f=document.getElementById('in-fecha').value,t=parseFloat(document.getElementById('in-total').value);
   if(!f){toast('Elige la fecha');return;}
   if(!(t>=0)||isNaN(t)){toast('Escribe el total del día');return;}
-  var add=loadAdded(),existed=add[f]!=null;add[f]=Math.round(t*100)/100;saveAdded(add);
+  var existed=cloudData[f]!=null;
+  cloudGuardar(f,Math.round(t*100)/100);
   document.getElementById('in-total').value='';
-  render();toast(existed?'Venta actualizada ✓':'Venta guardada ✓');
+  toast(existed?'Venta actualizada ✓':'Venta guardada ✓');
 });
 document.getElementById('added-table').addEventListener('click',function(e){
   var b=e.target.closest('[data-del]');if(!b)return;
   var d=b.dataset.del;
   if(confirm('¿Eliminar la venta del '+d.split('-').reverse().join('/')+'?')){
-    var add=loadAdded();delete add[d];saveAdded(add);render();toast('Venta eliminada');
+    cloudEliminar(d);toast('Venta eliminada');
   }
 });
 document.getElementById('btn-export').addEventListener('click',function(){
-  var blob=new Blob([JSON.stringify(loadAdded(),null,2)],{type:'application/json'});
+  var blob=new Blob([JSON.stringify(cloudData,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='respaldo-ventas-mulatas-'+new Date().toISOString().slice(0,10)+'.json';a.click();
-  toast('Respaldo descargado');
+  toast('Copia descargada');
 });
-document.getElementById('btn-import').addEventListener('click',function(){document.getElementById('file-import').click();});
-document.getElementById('file-import').addEventListener('change',function(e){
-  var file=e.target.files[0];if(!file)return;
-  var r=new FileReader();
-  r.onload=function(){try{var obj=JSON.parse(r.result);var add=loadAdded();Object.keys(obj).forEach(function(k){add[k]=obj[k];});saveAdded(add);render();toast('Respaldo cargado ✓');}catch(err){toast('Archivo no válido');}};
-  r.readAsText(file);e.target.value='';
-});
+document.getElementById('btn-refresh').addEventListener('click',function(){syncFromCloud();toast('Actualizando…');});
 document.getElementById('btn-csv').addEventListener('click',function(){
   var data=merged(),csv='Fecha,Dia,Ventas,Tickets\n';
   data.forEach(function(x){csv+=x.d+','+DIAS[parseDate(x.d).getDay()]+','+x.t.toFixed(2)+','+(x.n!=null?x.n:'')+'\n';});
@@ -662,7 +720,12 @@ document.getElementById('btn-print').addEventListener('click',function(){
 
 // init
 document.getElementById('in-fecha').value=new Date().toISOString().slice(0,10);
+cloudData=loadCache();      // muestra al instante la última copia conocida
 render();
+syncFromCloud();            // y trae lo más reciente de la nube
+// Al volver a la pestaña o recuperar internet, re-sincroniza
+document.addEventListener('visibilitychange',function(){if(!document.hidden)syncFromCloud();});
+window.addEventListener('online',function(){syncFromCloud();});
 
 // PWA: registrar service worker (para instalar en el celular y funcionar offline)
 if('serviceWorker' in navigator){
