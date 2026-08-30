@@ -102,6 +102,7 @@
   .up{color:var(--verde);font-weight:700}.down{color:var(--achiote);font-weight:700}
 
   .grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-bottom:18px}
+  .grid2b{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:18px}
   .prog{height:14px;background:#efe7d7;border-radius:10px;overflow:hidden;margin:10px 0 6px}
   .prog>span{display:block;height:100%;background:linear-gradient(90deg,var(--mango),var(--verde));border-radius:10px;transition:width .5s}
   .meta-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
@@ -133,13 +134,13 @@
 
   @media(max-width:760px){
     .kpis{grid-template-columns:1fr 1fr}
-    .grid2,.grid3,.recs{grid-template-columns:1fr}
+    .grid2,.grid3,.grid2b,.recs{grid-template-columns:1fr}
     .addgrid{grid-template-columns:1fr}
     .logo b{font-size:22px}.logo span{display:none}
     .updated{display:none}
   }
   @media print{
-    nav.tabs,.head-btns,.seg,.chk,.backup-note,.row-actions,#p-agregar,#month-filter,.statusbar{display:none!important}
+    nav.tabs,.head-btns,.seg,.chk,.backup-note,.row-actions,#p-agregar,#p-gastos,#month-filter,.statusbar{display:none!important}
     section.panel{display:block!important}
     .card,.kpi,.rec{break-inside:avoid;box-shadow:none}
     body{background:#fff}
@@ -168,6 +169,7 @@
     <button class="tab" data-t="semanal">Por semana</button>
     <button class="tab" data-t="mensual">Por mes</button>
     <button class="tab" data-t="patrones">Días y horas</button>
+    <button class="tab add" data-t="gastos">&#65291; Gastos</button>
     <button class="tab add" data-t="agregar">&#65291; Agregar venta</button>
   </div>
 </nav>
@@ -189,10 +191,10 @@
         <div id="comp-txt" style="font-size:13px"></div>
       </div>
       <div class="card" style="margin-bottom:0">
-        <h3>Proyección del mes</h3>
-        <p class="note">Al ritmo actual, cómo cerraría el mes.</p>
-        <div class="big" id="proj-val" style="color:var(--mango)"></div>
-        <div id="proj-txt" style="font-size:13px;margin-top:6px"></div>
+        <h3>Ganancia del mes</h3>
+        <p class="note" id="gan-lbl"></p>
+        <div class="big" id="gan-val"></div>
+        <div id="gan-txt" style="font-size:13px;margin-top:6px"></div>
       </div>
       <div class="card" style="margin-bottom:0">
         <h3>Ritmo reciente</h3>
@@ -262,7 +264,7 @@
       <p class="note">El mes en curso puede estar incompleto; se marca aparte.</p>
       <div class="tbl-wrap">
         <table id="monthly-table"><thead><tr>
-          <th>Mes</th><th class="num">Ventas</th><th class="num">Días</th><th class="num">Tickets</th><th class="num">Prom. diario</th><th class="num">Crecimiento</th>
+          <th>Mes</th><th class="num">Ventas</th><th class="num">Días</th><th class="num">Tickets</th><th class="num">Prom. diario</th><th class="num">Crecimiento</th><th class="num">Ganancia</th>
         </tr></thead><tbody></tbody></table>
       </div>
     </div>
@@ -288,6 +290,36 @@
         <div class="tbl-wrap" style="max-height:none">
           <table id="op-table"><thead><tr><th>Cajero</th><th class="num">Ventas</th><th class="num">Tickets</th><th class="num">Ticket prom.</th></tr></thead><tbody></tbody></table>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-gastos">
+    <h2 class="title">Gastos del mes</h2>
+    <p class="sub">Pon el gasto TOTAL del mes (insumos, sueldos, arriendo, luz, todo junto). El panel calcula tu ganancia.</p>
+    <div class="card">
+      <div class="addgrid">
+        <div class="field">
+          <label for="in-gmes">Mes</label>
+          <input type="month" id="in-gmes">
+        </div>
+        <div class="field">
+          <label for="in-gasto">Gasto total del mes ($)</label>
+          <input type="number" id="in-gasto" inputmode="decimal" step="0.01" min="0" placeholder="Ej: 8000">
+        </div>
+        <button class="btn" id="btn-gasto">Guardar gasto</button>
+      </div>
+      <p class="note" style="margin-top:12px">Si guardas un mes que ya tiene gasto, se reemplaza por el nuevo valor.</p>
+    </div>
+
+    <div class="card">
+      <h3>Gastos registrados</h3>
+      <p class="note" id="gasto-count"></p>
+      <div class="tbl-wrap" style="max-height:320px">
+        <table id="gasto-table"><thead><tr><th>Mes</th><th class="num">Ventas</th><th class="num">Gastos</th><th class="num">Ganancia</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="backup-note">
+        <b>Se guarda en la nube (Google):</b> igual que las ventas, lo ve cualquier dispositivo. Los meses sin gasto registrado no muestran ganancia.
       </div>
     </div>
   </section>
@@ -341,10 +373,13 @@ const SHEET_URL='https://script.google.com/macros/s/AKfycbwJKlNh1UJD2wk3PSRyffD_
 const CACHE_KEY='mulatas_cloud_cache_v1';
 const PEND_KEY='mulatas_cloud_pending_v1';
 var cloudData={};   // {fecha:{t,n}} — datos que viven en la nube (más lo pendiente)
+var gastosData={};  // {mes:monto} — gasto total por mes
 var mem={};         // fallback si el navegador bloquea localStorage
 
 function loadCache(){try{var r=localStorage.getItem(CACHE_KEY);return r?JSON.parse(r):{};}catch(e){return mem;}}
 function saveCache(o){mem=o;try{localStorage.setItem(CACHE_KEY,JSON.stringify(o));}catch(e){}}
+function loadCacheG(){try{var r=localStorage.getItem(CACHE_KEY+'_g');return r?JSON.parse(r):{};}catch(e){return {};}}
+function saveCacheG(o){try{localStorage.setItem(CACHE_KEY+'_g',JSON.stringify(o));}catch(e){}}
 function loadPending(){try{var r=localStorage.getItem(PEND_KEY);return r?JSON.parse(r):[];}catch(e){return [];}}
 function savePending(a){try{localStorage.setItem(PEND_KEY,JSON.stringify(a));}catch(e){}}
 
@@ -356,12 +391,16 @@ function syncFromCloud(){
   return fetch(SHEET_URL,{method:'GET'}).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.data){
       cloudData=res.data;
+      gastosData=res.gastos||{};
       // re-aplicar lo que quedó pendiente por subir
       loadPending().forEach(function(p){
-        if(p.accion==='eliminar'){delete cloudData[p.fecha];}
+        if(p.tipo==='gasto'){
+          if(p.accion==='eliminar'){delete gastosData[p.mes];}
+          else{gastosData[p.mes]=p.monto;}
+        }else if(p.accion==='eliminar'){delete cloudData[p.fecha];}
         else{cloudData[p.fecha]={t:p.total,n:(p.tickets===''||p.tickets==null?null:p.tickets)};}
       });
-      saveCache(cloudData);
+      saveCache(cloudData);saveCacheG(gastosData);
       render();
       flushPending();
       var pend=loadPending().length;
@@ -396,6 +435,20 @@ function cloudEliminar(fecha){
   delete cloudData[fecha];
   saveCache(cloudData);
   var q=loadPending();q.push({accion:'eliminar',fecha:fecha});savePending(q);
+  render();
+  flushPending();
+}
+function cloudGuardarGasto(mes,monto){
+  gastosData[mes]=monto;
+  saveCacheG(gastosData);
+  var q=loadPending();q.push({tipo:'gasto',accion:'guardar',mes:mes,monto:monto});savePending(q);
+  render();
+  flushPending();
+}
+function cloudEliminarGasto(mes){
+  delete gastosData[mes];
+  saveCacheG(gastosData);
+  var q=loadPending();q.push({tipo:'gasto',accion:'eliminar',mes:mes});savePending(q);
   render();
   flushPending();
 }
@@ -484,13 +537,24 @@ function render(){
   }
   var mesKpiClass=(mesG==null?'':mesG>=0?' good':' warn');
 
+  // Proyección del mes (para el 4º KPI)
+  var dimProj=daysInMonth(cm[0],cm[1]);
+  var projKpi=curMonthTotal/lastDayNum*dimProj;
+  var projClass='', projHint='cierre estimado de '+MESES_L[cm[1]-1];
+  if(pAgg){
+    var pgp=(projKpi/pAgg.t-1)*100;
+    projClass=projKpi>=pAgg.t?' good':' warn';
+    projHint='<span class="'+(pgp>=0?'up':'down')+'">'+pct(pgp)+'</span> vs '+MESES_L[(cm[1]-2+12)%12]+' completo';
+  }
+
   document.getElementById('kpis').innerHTML=
     '<div class="kpi"><div class="lbl">Ventas totales</div><div class="val">'+fmt0.format(totalV)+'</div><div class="hint">en '+dias+' días</div></div>'+
     '<div class="kpi"><div class="lbl">Promedio diario</div><div class="val">'+fmt0.format(promDia)+'</div><div class="hint">por día abierto</div></div>'+
     '<div class="kpi'+mesKpiClass+'"><div class="lbl">Ventas de '+MESES_L[cm[1]-1]+'</div><div class="val">'+fmt0.format(curMonthTotal)+'</div><div class="hint">'+mesGtxt+'</div></div>'+
-    '<div class="kpi"><div class="lbl">Ticket promedio</div><div class="val">'+(ticketProm?fmt.format(ticketProm):'—')+'</div><div class="hint">'+num.format(totalTk)+' tickets</div></div>';
+    '<div class="kpi'+projClass+'"><div class="lbl">Proyección del mes</div><div class="val">'+fmt0.format(projKpi)+'</div><div class="hint">'+projHint+'</div></div>';
 
   renderEsteMes(data,last);
+  renderGanancia(data,last);
   renderTrend(data);
   renderInsight(data);
   renderRecords(data,mejor);
@@ -521,6 +585,7 @@ function render(){
   }).join('');
 
   renderAddedTable();
+  renderGastoTable(data);
 }
 
 function weekdayAverages(data){
@@ -557,15 +622,37 @@ function renderEsteMes(data,last){
     document.getElementById('comp-lbl').textContent='Aún no hay un mes anterior completo para comparar.';
     document.getElementById('comp-txt').textContent='';
   }
+}
 
-  // Card: Proyección del mes
-  document.getElementById('proj-val').textContent=fmt0.format(proj);
-  var projTxt='Estimado para cerrar '+MESES_L[m-1]+' ('+dim+' días).';
-  if(prev){
-    var g2=(proj/prev.t-1)*100;
-    projTxt+='<br>Cerraría <span class="'+(g2>=0?'up':'down')+'">'+pct(g2)+'</span> vs '+prevName+' completo.';
+function renderGanancia(data,last){
+  var mo=monthAgg(data), curKey=last.slice(0,7), cur=mo[curKey];
+  var p=curKey.split('-').map(Number), m=p[1];
+  var gasto=(gastosData[curKey]!=null?Number(gastosData[curKey]):null);
+  var el=document.getElementById('gan-val'), lbl=document.getElementById('gan-lbl'), tx=document.getElementById('gan-txt');
+  if(gasto==null){
+    el.textContent='—'; el.style.color='var(--muted)';
+    lbl.textContent=MESES_L[m-1]+': falta registrar el gasto';
+    tx.innerHTML='<span style="color:var(--muted)">Ponlo en la pestaña “＋ Gastos” para ver tu ganancia.</span>';
+    return;
   }
-  document.getElementById('proj-txt').innerHTML=projTxt;
+  var gan=cur.t-gasto, pos=gan>=0;
+  lbl.textContent=MESES_L[m-1]+' · ventas '+fmt0.format(cur.t)+' − gastos '+fmt0.format(gasto);
+  el.textContent=fmt0.format(gan);
+  el.style.color=pos?'var(--verde)':'var(--achiote)';
+  var margen=cur.t>0?(gan/cur.t*100):0;
+  tx.innerHTML=pos?('Te queda <b>'+fmt0.format(gan)+'</b> ('+margen.toFixed(0)+'% de margen).'):('<span class="down">Vas en rojo '+fmt0.format(gan)+'.</span> Los gastos superan las ventas.');
+}
+
+function renderGastoTable(data){
+  var mo=monthAgg(data);
+  var meses=Object.keys(gastosData).sort().reverse();
+  document.getElementById('gasto-count').textContent=meses.length?meses.length+' mes(es) con gasto registrado.':'Aún no registras gastos. Usa el formulario de arriba.';
+  document.querySelector('#gasto-table tbody').innerHTML=meses.map(function(k){
+    var p=k.split('-'),ventas=(mo[k]?mo[k].t:0),gasto=Number(gastosData[k]),gan=ventas-gasto;
+    var cls=gan>=0?'up':'down';
+    return '<tr><td>'+MESES_L[+p[1]-1]+' '+p[0]+'</td><td class="num">'+fmt0.format(ventas)+'</td><td class="num">'+fmt0.format(gasto)+'</td><td class="num '+cls+'">'+fmt0.format(gan)+'</td>'+
+      '<td class="num"><button class="del" data-delg="'+k+'" title="Eliminar">✕</button></td></tr>';
+  }).join('');
 }
 
 function renderTrend(data){
@@ -649,7 +736,9 @@ function renderMonthly(data){
     var p=k.split('-'),v=mo[k],prevK=rev[ri+1],gcell='—';
     if(prevK){var g=(v.t/mo[prevK].t-1)*100;gcell='<span class="'+(g>=0?'up':'down')+'">'+pct(g)+'</span>';}
     var partial=k===lastKey?' <span class="pill new">en curso</span>':'';
-    return '<tr><td>'+MESES_L[+p[1]-1]+' '+p[0]+partial+'</td><td class="num">'+fmt.format(v.t)+'</td><td class="num">'+v.n+'</td><td class="num">'+(v.tk?num.format(v.tk):'—')+'</td><td class="num">'+fmt.format(v.t/v.n)+'</td><td class="num">'+gcell+'</td></tr>';
+    var gan='—';
+    if(gastosData[k]!=null){var gg=v.t-Number(gastosData[k]);gan='<span class="'+(gg>=0?'up':'down')+'">'+fmt0.format(gg)+'</span>';}
+    return '<tr><td>'+MESES_L[+p[1]-1]+' '+p[0]+partial+'</td><td class="num">'+fmt.format(v.t)+'</td><td class="num">'+v.n+'</td><td class="num">'+(v.tk?num.format(v.tk):'—')+'</td><td class="num">'+fmt.format(v.t/v.n)+'</td><td class="num">'+gcell+'</td><td class="num">'+gan+'</td></tr>';
   }).join('');
 }
 function renderAddedTable(){
@@ -698,6 +787,22 @@ document.getElementById('added-table').addEventListener('click',function(e){
     cloudEliminar(d);toast('Venta eliminada');
   }
 });
+document.getElementById('btn-gasto').addEventListener('click',function(){
+  var m=document.getElementById('in-gmes').value,g=parseFloat(document.getElementById('in-gasto').value);
+  if(!m){toast('Elige el mes');return;}
+  if(!(g>=0)||isNaN(g)){toast('Escribe el gasto del mes');return;}
+  var existed=gastosData[m]!=null;
+  cloudGuardarGasto(m,Math.round(g*100)/100);
+  document.getElementById('in-gasto').value='';
+  toast(existed?'Gasto actualizado ✓':'Gasto guardado ✓');
+});
+document.getElementById('gasto-table').addEventListener('click',function(e){
+  var b=e.target.closest('[data-delg]');if(!b)return;
+  var k=b.dataset.delg, p=k.split('-');
+  if(confirm('¿Eliminar el gasto de '+MESES_L[+p[1]-1]+' '+p[0]+'?')){
+    cloudEliminarGasto(k);toast('Gasto eliminado');
+  }
+});
 document.getElementById('btn-export').addEventListener('click',function(){
   var blob=new Blob([JSON.stringify(cloudData,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -720,7 +825,9 @@ document.getElementById('btn-print').addEventListener('click',function(){
 
 // init
 document.getElementById('in-fecha').value=new Date().toISOString().slice(0,10);
+document.getElementById('in-gmes').value=new Date().toISOString().slice(0,7);
 cloudData=loadCache();      // muestra al instante la última copia conocida
+gastosData=loadCacheG();
 render();
 syncFromCloud();            // y trae lo más reciente de la nube
 // Al volver a la pestaña o recuperar internet, re-sincroniza
